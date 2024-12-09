@@ -155,21 +155,28 @@ with tab3:
         st.dataframe(holiday_rentals) 
 
 with tab4:
-
     col1, col2, col3 = st.columns([1, 8, 1])
+    
     with col2:
+        # Menampilkan rata-rata penyewaan sepeda per bulan dengan filter
         st.write("### Rata-rata Penyewaan Sepeda per Bulan")
+        filtered_avg_rentals = avg_rentals_weather_season[
+            (avg_rentals_weather_season["season"].isin([{"Spring": 1, "Summer": 2, "Fall": 3, "Winter": 4}[season] for season in season_filter])) &
+            (avg_rentals_weather_season["weathersit"].isin([{"Clear": 1, "Mist": 2, "Light Snow/Rain": 3, "Heavy Rain": 4}[weather] for weather in weather_filter]))
+        ]
+        
         fig, ax = plt.subplots(figsize=(10, 5))
-        sns.barplot(x="mnth", y="cnt", data=avg_rentals_weather_season, palette="viridis", ax=ax)
+        sns.barplot(x="mnth", y="cnt", data=filtered_avg_rentals, palette="viridis", ax=ax)
         ax.set_title("Average Bike Rentals per Month", fontsize=12)
         ax.set_xlabel("Month", fontsize=12)
         ax.set_ylabel("Average Rentals (cnt)", fontsize=10)
         plt.xticks(rotation=45)
         st.pyplot(fig)
-    #==========Penyewaan Sepeda Berdasarkan Bulan dan Cuaca==========
+
+        # Penyewaan sepeda berdasarkan bulan dan cuaca dengan filter
         st.write("### Penyewaan Sepeda Berdasarkan Bulan dan Cuaca")
         plt.figure(figsize=(16, 8))
-        sns.barplot(x="season", y="cnt", hue="weathersit", data=avg_rentals_weather_season, palette="coolwarm")
+        sns.barplot(x="season", y="cnt", hue="weathersit", data=filtered_avg_rentals, palette="coolwarm")
 
         plt.title("Average Bike Rentals per Month by Weather", fontsize=16)
         plt.xlabel("Month", fontsize=12)
@@ -180,63 +187,29 @@ with tab4:
         plt.tight_layout()
         st.pyplot(plt)
 
-#==========Penyewaan Sepeda Berdasarkan Bulan dan Cuaca==========
-        st.write("### Penyewaan Sepeda Berdasarkan Bulan dan Cuaca")
-        plt.figure(figsize=(16, 8))
-        sns.barplot(x="mnth", y="cnt", hue="weathersit", data=avg_rentals_weather_season, palette="coolwarm")
-
-        plt.title("Average Bike Rentals per Month by Weather", fontsize=16)
-        plt.xlabel("Month", fontsize=12)
-        plt.ylabel("Average Rentals (cnt)", fontsize=12)
-        plt.xticks(rotation=45)  
-        plt.legend(title="Weather Situation", fontsize=10)
-        plt.grid(axis="y", linestyle="--", alpha=0.7)
-        plt.tight_layout()
-        st.pyplot(plt)
-
-#=========Korelasi antara Cuaca dan Jumlah Penyewaan Sepeda==========
+        # Korelasi antara cuaca dan jumlah penyewaan sepeda dengan filter
         st.write("### Korelasi antara Cuaca dan Jumlah Penyewaan Sepeda")
+        filtered_weather_rentals = weather_rentals[weather_rentals.index.isin([{"Clear": 1, "Mist": 2, "Light Snow/Rain": 3, "Heavy Rain": 4}[weather] for weather in weather_filter])]
+        
         plt.figure(figsize=(4, 4))
-        labels = weather_rentals.index
-        sizes = weather_rentals.values
+        labels = filtered_weather_rentals.index
+        sizes = filtered_weather_rentals.values
         plt.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140, colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
         plt.title("Korelasi antara Cuaca dan Jumlah Penyewaan Sepeda", fontsize=16)
         plt.axis("equal")  
         st.pyplot(plt)
 
-#=========Heat Map==========
-        st.write("### Penyewaan Sepeda Berdasarkan Bulan dan Cuaca")
+        # Penyewaan sepeda berdasarkan jam dengan filter
+        st.write("### Perbedaan Penyewaan Sepeda Berdasarkan Jam")
+        filtered_hourly_rentals = hourly_rentals[hourly_rentals["hr"].isin(hourly_rentals["hr"])]
+
         plt.figure(figsize=(16, 8))
-        plt.plot(hourly_rentals["hr"], hourly_rentals["cnt"], marker='o', color="b", linestyle='-', linewidth=2, markersize=6)
+        plt.plot(filtered_hourly_rentals["hr"], filtered_hourly_rentals["cnt"], marker='o', color="b", linestyle='-', linewidth=2, markersize=6)
         plt.title("Perbedaan Penyewaan Sepeda Berdasarkan Jam", fontsize=16)
         plt.xlabel("Jam", fontsize=12)
-        plt.ylabel("Rata-rata Penyewaan Sepeda", fontsize=12)
-        plt.xticks(hourly_rentals["hr"], rotation=45)
+        plt.ylabel("Rata-rata Penyewaan (cnt)", fontsize=12)
         plt.grid(True)
         st.pyplot(plt)
-#=========Heat Map==========
-        st.write("### Penyewaan Sepeda Berdasarkan Bulan dan Cuaca")
-        plt.figure(figsize=(16, 8))
-        plt.bar(holiday_rentals["holiday"].astype(str), holiday_rentals["cnt"], color=["blue", "orange"])
-        plt.title("Dampak Hari Libur terhadap Penyewaan Sepeda", fontsize=16)
-        plt.xlabel("Hari Libur (0 = Bukan Libur, 1 = Libur)", fontsize=12)
-        plt.ylabel("Rata-rata Penyewaan Sepeda", fontsize=12)
-        plt.xticks([0, 1], ["Bukan Libur", "Libur"], rotation=0)
-        plt.grid(True, axis="y", linestyle="--", alpha=0.7)
-        st.pyplot(plt)
-
-#=========Heat Map==========
-        fig, ax = plt.subplots(figsize=(16, 8))
-        sns.heatmap(pivot_table, annot=True, cmap="YlGnBu", fmt=".1f", cbar_kws={'label': 'Average Rentals (cnt)'}, ax=ax)
-
-        ax.set_title("Rata-rata Sewa Sepeda per Bulan Berdasarkan Musim dan Cuaca", fontsize=16)
-        ax.set_xlabel("Season and Weather", fontsize=12)
-        ax.set_ylabel("Month", fontsize=12)
-        ax.tick_params(axis='x', rotation=45)
-        ax.tick_params(axis='y', rotation=0)
-
-        st.write("### Rata-rata Sewa Sepeda per Bulan Berdasarkan Musim dan Cuaca")
-        st.pyplot(fig)
 
 
 
